@@ -1,0 +1,32 @@
+name: Android 17 Settings historical migration audit
+
+on:
+  push:
+    branches:
+      - audit/a17-mondrian-settings-20261104
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-settings-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            Android.bp
+            AndroidManifest.xml
+            TouchGestures
+            src/com/android/settings/custom/touch/HighTouchPollingRateSettingsPreferenceController.java
+            src/com/android/settings/fuelgauge/FastChargingPreferenceController.java
+            src/com/android/settings/wifi/tether/WifiTetherApBandPreferenceController.java
+            docs
+            tools
+          sparse-checkout-cone-mode: false
+      - name: Validate old Settings source graph and blocked dependencies
+        run: python3 tools/verify_a17_settings_legacy.py
